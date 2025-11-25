@@ -17,7 +17,7 @@ class DoctrineCursorIterator
         $this->propertyAccessor = $propertyAccessor ?: PropertyAccess::createPropertyAccessor();
     }
 
-    public function iterate(QueryBuilder $qb, int $hydrationMode = AbstractQuery::HYDRATE_OBJECT): iterable
+    public function iterate(QueryBuilder $qb, int $hydrationMode = AbstractQuery::HYDRATE_OBJECT, array $hints = []): iterable
     {
         $last_properties_values = [];
         $end_reached = false;
@@ -77,8 +77,13 @@ class DoctrineCursorIterator
                 $cursorQb->andWhere($nested);
             }
 
+            $cursorQuery = $cursorQb->getQuery();
+            foreach ($hints as $hint_name => $hint_value) {
+                $cursorQuery->setHint($hint_name, $hint_value);
+            }
+
             $items_cnt = 0;
-            foreach ($cursorQb->getQuery()->getResult($hydrationMode) as $item) {
+            foreach ($cursorQuery->getResult($hydrationMode) as $item) {
                 foreach ($order_by_properties as $orderByProperty) {
                     $property_path = is_array($item) ? '[' . $orderByProperty['property'] . ']' : $orderByProperty['property'];
                     $last_properties_values[$orderByProperty['property']] = $this->propertyAccessor->getValue($item, $property_path);
