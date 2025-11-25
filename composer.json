@@ -1,0 +1,23 @@
+{
+    "name": "wiistriker/doctrine-cursor-iterator",
+    "description": "Iterate through large datasets",
+    "keywords": ["symfony","doctrine","deep-page-problem","cursor-based-pagination"],
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "symfony/property-access": "*",
+        "doctrine/orm": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9",
+        "symfony/cache": "*",
+        "colinodell/psr-testlogger": "^1.3",
+        "phpstan/phpstan": "^2.1"
+    },
+    "autoload": {
+        "psr-4": {"Wiistriker\\": "src/"}
+    },
+    "autoload-dev": {
+        "psr-4": { "Tests\\": "tests/" }
+    }
+}
