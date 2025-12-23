@@ -36,10 +36,10 @@ class DoctrineCursorIteratorTest extends TestCase
             ->setMaxResults(100)
         ;
 
-        $cursorIterator = new DoctrineCursorIterator();
+        $cursorIterator = new DoctrineCursorIterator($qb);
 
         $cnt = 0;
-        foreach ($cursorIterator->iterate($qb) as $testEntity) {
+        foreach ($cursorIterator as $testEntity) {
             $cnt++;
         }
 
@@ -76,14 +76,102 @@ class DoctrineCursorIteratorTest extends TestCase
             ->setMaxResults(100)
         ;
 
-        $cursorIterator = new DoctrineCursorIterator();
+        $cursorIterator = new DoctrineCursorIterator($qb);
 
         $cnt = 0;
-        foreach ($cursorIterator->iterate($qb) as $testEntity) {
+        foreach ($cursorIterator as $testEntity) {
             $cnt++;
         }
 
         $this->assertEquals(1234, $cnt);
+        $this->assertCount(13, $this->queryLogger->records);
+
+        $query_logs = $this->queryLogger->records;
+
+        $this->assertEquals('SELECT t0_.id AS id_0, t0_.createdAt AS createdAt_1 FROM TestEntity t0_ ORDER BY t0_.createdAt DESC, t0_.id DESC LIMIT 100', $query_logs[0]['context']['sql']);
+        $this->assertArrayNotHasKey('params', $query_logs[0]['context']);
+
+        for ($i = 1; $i < sizeof($query_logs); $i++) {
+            $this->assertEquals('SELECT t0_.id AS id_0, t0_.createdAt AS createdAt_1 FROM TestEntity t0_ WHERE t0_.createdAt < ? OR (t0_.createdAt = ? AND t0_.id < ?) ORDER BY t0_.createdAt DESC, t0_.id DESC LIMIT 100', $query_logs[$i]['context']['sql']);
+        }
+    }
+
+    public function testCursorIteratorAsBatch(): void
+    {
+        for ($i = 0; $i < 1234; $i++) {
+            $entity = new TestEntity('test' . $i, new DateTime('+' . $i . ' seconds'), new DateTime('+' . ($i * 2) . ' seconds'));
+            $this->entityManager->persist($entity);
+        }
+
+        $this->entityManager->flush();
+
+        $this->queryLogger->reset();
+
+        $testEntityRepository = $this->entityManager->getRepository(TestEntity::class);
+        $qb = $testEntityRepository->createQueryBuilder('t')
+            ->select('t.id', 't.createdAt')
+            ->orderBy('t.createdAt', 'DESC')
+            ->addOrderBy('t.id', 'DESC')
+            ->setMaxResults(100)
+        ;
+
+        $cursorIterator = new DoctrineCursorIterator($qb);
+
+        $cnt = 0;
+        $batch_cnt = 0;
+        foreach ($cursorIterator->batch() as $testEntities) {
+            $batch_cnt++;
+            foreach ($testEntities as $testEntity) {
+                $cnt++;
+            }
+        }
+
+        $this->assertEquals(1234, $cnt);
+        $this->assertEquals(13, $batch_cnt);
+        $this->assertCount(13, $this->queryLogger->records);
+
+        $query_logs = $this->queryLogger->records;
+
+        $this->assertEquals('SELECT t0_.id AS id_0, t0_.createdAt AS createdAt_1 FROM TestEntity t0_ ORDER BY t0_.createdAt DESC, t0_.id DESC LIMIT 100', $query_logs[0]['context']['sql']);
+        $this->assertArrayNotHasKey('params', $query_logs[0]['context']);
+
+        for ($i = 1; $i < sizeof($query_logs); $i++) {
+            $this->assertEquals('SELECT t0_.id AS id_0, t0_.createdAt AS createdAt_1 FROM TestEntity t0_ WHERE t0_.createdAt < ? OR (t0_.createdAt = ? AND t0_.id < ?) ORDER BY t0_.createdAt DESC, t0_.id DESC LIMIT 100', $query_logs[$i]['context']['sql']);
+        }
+    }
+
+    public function testCursorIteratorAsBatchWithExplicitSize(): void
+    {
+        for ($i = 0; $i < 1234; $i++) {
+            $entity = new TestEntity('test' . $i, new DateTime('+' . $i . ' seconds'), new DateTime('+' . ($i * 2) . ' seconds'));
+            $this->entityManager->persist($entity);
+        }
+
+        $this->entityManager->flush();
+
+        $this->queryLogger->reset();
+
+        $testEntityRepository = $this->entityManager->getRepository(TestEntity::class);
+        $qb = $testEntityRepository->createQueryBuilder('t')
+            ->select('t.id', 't.createdAt')
+            ->orderBy('t.createdAt', 'DESC')
+            ->addOrderBy('t.id', 'DESC')
+            ->setMaxResults(100)
+        ;
+
+        $cursorIterator = new DoctrineCursorIterator($qb);
+
+        $cnt = 0;
+        $batch_cnt = 0;
+        foreach ($cursorIterator->batch(10) as $testEntities) {
+            $batch_cnt++;
+            foreach ($testEntities as $testEntity) {
+                $cnt++;
+            }
+        }
+
+        $this->assertEquals(1234, $cnt);
+        $this->assertEquals(124, $batch_cnt);
         $this->assertCount(13, $this->queryLogger->records);
 
         $query_logs = $this->queryLogger->records;
@@ -106,8 +194,8 @@ class DoctrineCursorIteratorTest extends TestCase
             ->setMaxResults(100)
         ;
 
-        $cursorIterator = new DoctrineCursorIterator();
-        foreach ($cursorIterator->iterate($qb) as $testEntity) {
+        $cursorIterator = new DoctrineCursorIterator($qb);
+        foreach ($cursorIterator as $testEntity) {
 
         }
     }
@@ -122,8 +210,8 @@ class DoctrineCursorIteratorTest extends TestCase
             ->orderBy('t.createdAt', 'DESC')
         ;
 
-        $cursorIterator = new DoctrineCursorIterator();
-        foreach ($cursorIterator->iterate($qb) as $testEntity) {
+        $cursorIterator = new DoctrineCursorIterator($qb);
+        foreach ($cursorIterator as $testEntity) {
 
         }
     }

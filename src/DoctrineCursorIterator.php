@@ -4,27 +4,46 @@ namespace Wiistriker;
 
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\QueryBuilder;
+use IteratorAggregate;
+use RuntimeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Doctrine\ORM\Query\Expr;
+use Traversable;
 
-class DoctrineCursorIterator
+/**
+ * @template T
+ */
+class DoctrineCursorIterator implements IteratorAggregate
 {
-    private PropertyAccessorInterface $propertyAccessor;
+    protected QueryBuilder $qb;
+    protected int $hydrationMode;
+    protected array $queryHints;
+    protected PropertyAccessorInterface $propertyAccessor;
 
-    public function __construct(PropertyAccessorInterface $propertyAccessor = null)
-    {
+    public function __construct(
+        QueryBuilder $qb,
+        int $hydrationMode = AbstractQuery::HYDRATE_OBJECT,
+        array $queryHints = [],
+        PropertyAccessorInterface $propertyAccessor = null
+    ) {
+        $this->qb = $qb;
+        $this->hydrationMode = $hydrationMode;
+        $this->queryHints = $queryHints;
         $this->propertyAccessor = $propertyAccessor ?: PropertyAccess::createPropertyAccessor();
     }
 
-    public function iterate(QueryBuilder $qb, int $hydrationMode = AbstractQuery::HYDRATE_OBJECT, array $hints = []): iterable
+    /**
+     * @return Traversable<int, T>
+     */
+    public function getIterator(): Traversable
     {
         $last_properties_values = [];
         $end_reached = false;
 
         $order_by_properties = [];
         $order_by_properties_cnt = 0;
-        foreach ($qb->getDQLPart('orderBy') as $orderByPart) {
+        foreach ($this->qb->getDQLPart('orderBy') as $orderByPart) {
             $order_by_part = $orderByPart->getParts()[0];
             if (preg_match('/^([a-z0-9_]*)\.([a-z0-9_]*)\s+(ASC|DESC)$/i', $order_by_part, $matches)) {
                 $order_field = $matches[1] . '.' . $matches[2];
@@ -40,20 +59,20 @@ class DoctrineCursorIterator
         }
 
         if ($order_by_properties_cnt === 0) {
-            throw new \RuntimeException('No order properties found');
+            throw new RuntimeException('No order properties found');
         }
 
-        $max_results_cnt = $qb->getMaxResults();
+        $max_results_cnt = $this->qb->getMaxResults();
 
         if ($max_results_cnt === null) {
-            throw new \RuntimeException('No max results found');
+            throw new RuntimeException('No max results found');
         }
 
         do {
-            $cursorQb = clone($qb);
+            $cursorQb = clone($this->qb);
 
             if ($last_properties_values) {
-                $expr = $qb->expr();
+                $expr = $cursorQb->expr();
 
                 $nested = null;
                 for ($i = $order_by_properties_cnt - 1; $i >= 0; $i--) {
@@ -78,12 +97,12 @@ class DoctrineCursorIterator
             }
 
             $cursorQuery = $cursorQb->getQuery();
-            foreach ($hints as $hint_name => $hint_value) {
+            foreach ($this->queryHints as $hint_name => $hint_value) {
                 $cursorQuery->setHint($hint_name, $hint_value);
             }
 
             $items_cnt = 0;
-            foreach ($cursorQuery->getResult($hydrationMode) as $item) {
+            foreach ($cursorQuery->getResult($this->hydrationMode) as $item) {
                 foreach ($order_by_properties as $orderByProperty) {
                     $property_path = is_array($item) ? '[' . $orderByProperty['property'] . ']' : $orderByProperty['property'];
                     $last_properties_values[$orderByProperty['property']] = $this->propertyAccessor->getValue($item, $property_path);
@@ -98,5 +117,29 @@ class DoctrineCursorIterator
                 $end_reached = true;
             }
         } while (!$end_reached);
+    }
+
+    /**
+     * @return Traversable<int, T[]>
+     */
+    public function batch(?int $size = null): Traversable
+    {
+        $size = $size ?? $this->qb->getMaxResults();
+
+        $batch = [];
+        $batch_size = 0;
+        foreach ($this->getIterator() as $item) {
+            $batch[] = $item;
+            $batch_size++;
+            if ($batch_size >= $size) {
+                yield $batch;
+                $batch = [];
+                $batch_size = 0;
+            }
+        }
+
+        if (!empty($batch)) {
+            yield $batch;
+        }
     }
 }
