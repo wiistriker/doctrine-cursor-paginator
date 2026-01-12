@@ -9,7 +9,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Logging\Middleware as LoggingMiddleware;
 use Doctrine\ORM\ORMSetup;
 use PHPUnit\Framework\TestCase;
-use Wiistriker\DoctrineDBALCursorPaginator;
+use Wiistriker\DoctrineCursorPaginator\DoctrineDBALCursorPaginator;
 
 class DoctrineDBALCursorPaginatorTest extends TestCase
 {

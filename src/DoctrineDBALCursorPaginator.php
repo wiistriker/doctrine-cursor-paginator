@@ -1,6 +1,6 @@
 <?php
 
-namespace Wiistriker;
+namespace Wiistriker\DoctrineCursorPaginator;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 use IteratorAggregate;
@@ -8,7 +8,7 @@ use ReflectionObject;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Traversable;
-use Wiistriker\Exception\InvalidArgumentException;
+use Wiistriker\DoctrineCursorPaginator\Exception\InvalidArgumentException;
 
 class DoctrineDBALCursorPaginator implements IteratorAggregate
 {

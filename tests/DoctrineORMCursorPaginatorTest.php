@@ -10,7 +10,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use PHPUnit\Framework\TestCase;
 use ColinODell\PsrTestLogger\TestLogger;
 use Tests\Entity\TestEntity;
-use Wiistriker\DoctrineORMCursorPaginator;
+use Wiistriker\DoctrineCursorPaginator\DoctrineORMCursorPaginator;
 use Doctrine\DBAL\Logging\Middleware as LoggingMiddleware;
 
 class DoctrineORMCursorPaginatorTest extends TestCase

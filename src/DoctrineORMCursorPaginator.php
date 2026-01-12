@@ -1,6 +1,6 @@
 <?php
 
-namespace Wiistriker;
+namespace Wiistriker\DoctrineCursorPaginator;
 
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\QueryBuilder;
@@ -9,7 +9,7 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Doctrine\ORM\Query\Expr;
 use Traversable;
-use Wiistriker\Exception\InvalidArgumentException;
+use Wiistriker\DoctrineCursorPaginator\Exception\InvalidArgumentException;
 
 /**
  * @template T

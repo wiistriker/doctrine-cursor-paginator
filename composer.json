@@ -1,7 +1,7 @@
 {
     "name": "wiistriker/doctrine-cursor-paginator",
     "description": "Iterate through large datasets",
-    "keywords": ["symfony","doctrine","deep-page-problem","cursor-based-pagination"],
+    "keywords": ["symfony","doctrine","deep-page-problem","cursor-based-pagination","seek method","keyset pagination"],
     "type": "library",
     "license": "MIT",
     "require": {
@@ -15,7 +15,7 @@
         "phpstan/phpstan": "^2.1"
     },
     "autoload": {
-        "psr-4": {"Wiistriker\\": "src/"}
+        "psr-4": {"Wiistriker\\DoctrineCursorPaginator\\": "src/"}
     },
     "autoload-dev": {
         "psr-4": { "Tests\\": "tests/" }
