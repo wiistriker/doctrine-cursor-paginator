@@ -42,7 +42,7 @@ $qb = $testEntityRepository->createQueryBuilder('t')
     ->setMaxResults(100)
 ;
 
-$cursorIterator = new DoctrineCursorIterator($qb);
+$cursorIterator = new DoctrineORMCursorPaginator($qb);
 
 foreach ($cursorIterator as $testEntity) {
     //...
@@ -52,13 +52,13 @@ foreach ($cursorIterator as $testEntity) {
 You can change hydration mode
 
 ```php
-$cursorIterator = new DoctrineCursorIterator($qb, AbstractQuery::HYDRATE_ARRAY);
+$cursorIterator = new DoctrineORMCursorPaginator($qb, AbstractQuery::HYDRATE_ARRAY);
 ```
 
 And even set query hints
 
 ```php
-$cursorIterator = new DoctrineCursorIterator(
+$cursorIterator = new DoctrineORMCursorPaginator(
     qb: $qb,
     queryHints: [
         'fetchMode' => [
