@@ -59,7 +59,7 @@ And even set query hints
 
 ```php
 $cursorIterator = new DoctrineORMCursorPaginator(
-    qb: $qb,
+    queryBuilder: $qb,
     queryHints: [
         'fetchMode' => [
             TestEntity::class => [
