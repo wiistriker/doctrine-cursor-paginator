@@ -13,9 +13,10 @@ $qb = $testEntityRepository->createQueryBuilder('t')
     ->setMaxResults(100)
 ;
 
-$cursorIterator = new DoctrineORMCursorPaginator($qb);
+/** @var DoctrineORMCursorPaginator<TestEntity> $cursorPaginator */
+$cursorPaginator = new DoctrineORMCursorPaginator($qb);
 
-foreach ($cursorIterator as $testEntity) {
+foreach ($cursorPaginator as $testEntity) {
     //...
 }
 ```
@@ -42,9 +43,10 @@ $qb = $testEntityRepository->createQueryBuilder('t')
     ->setMaxResults(100)
 ;
 
-$cursorIterator = new DoctrineORMCursorPaginator($qb);
+/** @var DoctrineORMCursorPaginator<TestEntity> $cursorPaginator */
+$cursorPaginator = new DoctrineORMCursorPaginator($qb);
 
-foreach ($cursorIterator as $testEntity) {
+foreach ($cursorPaginator as $testEntity) {
     //...
 }
 ```
@@ -52,13 +54,13 @@ foreach ($cursorIterator as $testEntity) {
 You can change hydration mode
 
 ```php
-$cursorIterator = new DoctrineORMCursorPaginator($qb, AbstractQuery::HYDRATE_ARRAY);
+$cursorPaginator = new DoctrineORMCursorPaginator($qb, AbstractQuery::HYDRATE_ARRAY);
 ```
 
 And even set query hints
 
 ```php
-$cursorIterator = new DoctrineORMCursorPaginator(
+$cursorPaginator = new DoctrineORMCursorPaginator(
     queryBuilder: $qb,
     queryHints: [
         'fetchMode' => [
@@ -109,8 +111,6 @@ $queryBuilder
 
 $cursorPaginator = new DoctrineDBALCursorPaginator($queryBuilder);
 
-$cnt = 0;
 foreach ($cursorPaginator as $row) {
-    $cnt++;
 }
 ```
