@@ -24,10 +24,20 @@ class DoctrineDBALCursorPaginator implements IteratorAggregate
         PropertyAccessorInterface $propertyAccessor = null
     ) {
         $queryBuilderReflection = new ReflectionObject($queryBuilder);
-        $orderByProperty = $queryBuilderReflection->getProperty('orderBy');
-        $orderByProperty->setAccessible(true);
 
-        $orderByValues = $orderByProperty->getValue($queryBuilder);
+        if ($queryBuilderReflection->hasProperty('sqlParts')) {
+            $sqlPartsProperty = $queryBuilderReflection->getProperty('sqlParts');
+            $sqlPartsProperty->setAccessible(true);
+
+            $sqlPartsPropertyValue = $sqlPartsProperty->getValue($queryBuilder);
+
+            $orderByValues = $sqlPartsPropertyValue['orderBy'] ?? [];
+        } else {
+            $orderByProperty = $queryBuilderReflection->getProperty('orderBy');
+            $orderByProperty->setAccessible(true);
+
+            $orderByValues = $orderByProperty->getValue($queryBuilder);
+        }
 
         $orderByProperties = [];
         $orderByPropertiesCnt = 0;
